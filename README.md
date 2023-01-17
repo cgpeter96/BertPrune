@@ -17,7 +17,7 @@ optional arguments:
   -sl SELECT_LAYERS, --select_layers SELECT_LAYERS
                         可以输入int or 1,2,3,4
 ```
-**usage**
+**usage**f
 ```python 
 python prune.py -mp bert_uncase/ -pmp bert_uncase_prune/ -sl 1,2,3
 python prune.py -mp bert_uncase/ -pmp bert_uncase_prune/ -sl 3

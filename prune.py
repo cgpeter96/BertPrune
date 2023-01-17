@@ -10,6 +10,8 @@ import argparse
 from typing import List,Union
 import copy
 import torch
+import pdb
+import sys
 from transformers import BertModel,BertTokenizer,BertConfig
 
 def parse_args():
@@ -22,7 +24,7 @@ def parse_args():
         if "," in args.select_layers:
             select_layers = list(map(int,[i.strip() for i in args.select_layers.split(",")]))
         else:
-            select_layers=int(args.select_layers)
+            select_layers=list(range(int(args.select_layers)))
         setattr(args,"select_layers",select_layers)
     return args
 
@@ -77,19 +79,35 @@ def prune_model_config(config, maintain_layer_nums:Union[List[int],int]=6):
 def check_prune_model(config,model_weight,select_layers):
     # 确保层数和实际保存是一致的
     valid_layers  = []
-    for layer_name,_ in model_weight.items():
+
+    for layer_name in model_weight.keys():
         #统计有效层数
         if "attention" in layer_name:
             layer_num = int(layer_name.split(".attention")[0].rsplit(".",1)[1])
             valid_layers.append(layer_num)
-    valid_layers = list(set(valid_layers))
+    valid_layers = sorted(list(set(valid_layers)))
     
     if config.num_hidden_layers != len(valid_layers):
         config.num_hidden_layers = len(valid_layers)
 
+    #修改层中name
+    print(valid_layers)
+
+    for layer_name in list(model_weight.keys()):
+        if "encoder.layer." in layer_name:
+            layer_params = model_weight.pop(layer_name)
+            _,name_part = layer_name.split("encoder.layer.")
+            name_num ,name_part2 = name_part.split(".",1)
+            corr_layer_num = valid_layers.index(int(name_num))
+            new_layer_name = "{}{}.{}".format("encoder.layer.",corr_layer_num,name_part2)
+            print(f"layer mapping {layer_name} to{new_layer_name}")
+            model_weight[new_layer_name] = layer_params
+
+
+    # pdb.set_trace()
     #判断裁剪层数和实际层不一致
     if max(select_layers)>=max(valid_layers):
-        print("WARN:裁剪最大层数({}),超出模型层数({}),仅保存有效层数".format(max(valid_layers),max(select_layers))
+        print("WARN:裁剪最大层数({}),超出模型层数({}),仅保存有效层数".format(max(valid_layers),max(select_layers)),
             file=sys.stderr)
 
 def main_prune(args):
