@@ -15,7 +15,8 @@ optional arguments:
   -mp MODEL_PATH, --model_path MODEL_PATH
   -pmp PRUNE_MODEL_PATH, --prune_model_path PRUNE_MODEL_PATH
   -sl SELECT_LAYERS, --select_layers SELECT_LAYERS
-                        可以输入int or 1,2,3,4
+                        可以输入int or 1,2,3,4 or "1 2 3 4"
+# NOTE: 切记别超过最大层数，有效层数为min(实际层数,最大层数)
 ```
 **usage**f
 ```python 

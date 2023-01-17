@@ -11,6 +11,7 @@ from typing import List,Union
 import copy
 import torch
 import pdb
+import re
 import sys
 from transformers import BertModel,BertTokenizer,BertConfig
 
@@ -22,6 +23,9 @@ def parse_args():
     args = parser.parse_args()
     if hasattr(args,"select_layers"):
         if "," in args.select_layers:
+            select_layers = list(map(int,[i.strip() for i in args.select_layers.split(",")]))
+        elif " " in args.select_layers:
+            args.select_layers = re.sub("\s+",",",args.select_layers.strip())
             select_layers = list(map(int,[i.strip() for i in args.select_layers.split(",")]))
         else:
             select_layers=list(range(int(args.select_layers)))
